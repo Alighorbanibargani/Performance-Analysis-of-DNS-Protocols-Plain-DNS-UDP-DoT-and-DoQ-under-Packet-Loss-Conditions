@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) This repository documents an experimental study comparing the performance of three key DNS protocols: Plain DNS (over UDP), DNS over TLS (DoT), and DNS over QUIC (DoQ). The core of this project was to understand how these protocols behave in terms of speed, reliability, and latency when subjected to various levels of network packet loss.
 
-**This project was undertaken as part of the "Internet Measurements" course at the University of Tehran, under the supervision of Dr. Ahmad Khonsari.**
+**This project was undertaken as part of the "Internet Measurements" course at the University of Tehran, under the supervision of [Dr. Ahmad Khonsari](https://hpnl.ir/people/ahmad-khonsari.html). **
 
 ---
 
