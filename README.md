@@ -113,8 +113,3 @@ The analysis of the collected log files (detailed in `report.pdf`) revealed the 
 | 20%           | 73.8%           | 98.6%     | 98.5%     |
 *Source: Calculated from `dnspyre` logs (`NOERROR` count / total expected queries).*
 
----
-
-## 💡 Using the Log Files
-
-The raw `dnspyre` logs in the `logs/` directory are plain text and can be parsed for detailed statistics from each test run. They were the primary source for the analysis presented in the `report.pdf` and the summary tables above.
