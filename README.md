@@ -1,2 +1,137 @@
-# Performance-Analysis-of-DNS-Protocols-Plain-DNS-UDP-DoT-and-DoQ-under-Packet-Loss-Conditions
-This repository documents an experimental study comparing the performance of three key DNS protocols: Plain DNS (over UDP), DNS over TLS (DoT), and DNS over QUIC (DoQ). The core of this project was to understand how these protocols behave in terms of speed, reliability, and latency when subjected to various levels of network packet loss.
+# Performance Analysis of DNS Protocols: Plain DNS (UDP), DoT, and DoQ under Packet Loss Conditions
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) This repository documents an experimental study comparing the performance of three key DNS protocols: Plain DNS (over UDP), DNS over TLS (DoT), and DNS over QUIC (DoQ). The core of this project was to understand how these protocols behave in terms of speed, reliability, and latency when subjected to various levels of network packet loss.
+
+**This project was undertaken as part of the "Internet Measurements" course at the University of Tehran, under the supervision of Dr. Ahmad Khonsari.**
+
+---
+
+## 🚀 Project Overview
+
+The goal of this project, conducted for the **Internet Measurements course (Instructor: Dr. Ahmad Khonsari, University of Tehran)**, was to empirically evaluate and compare the real-world performance characteristics of Plain DNS, DoT, and DoQ. Understanding these protocols is key to appreciating the study:
+
+* **Plain DNS (UDP):** This is the traditional DNS protocol, typically running over UDP on port 53. It's known for its speed and low overhead due to UDP's connectionless nature. However, it lacks encryption, making queries vulnerable to sniffing and manipulation (e.g., DNS spoofing). Its reliance on UDP also means it can suffer from unreliability in networks with packet loss.
+
+* **DNS over TLS (DoT):** Standardized in RFC 7858, DoT aims to enhance security and privacy by encrypting DNS queries and responses within a Transport Layer Security (TLS) tunnel. It typically runs over TCP on port 853. While providing strong security, the use of TCP and the TLS handshake can introduce additional latency compared to Plain DNS.
+
+* **DNS over QUIC (DoQ):** A newer protocol standardized in RFC 9250, DoQ utilizes the QUIC transport protocol (which itself runs over UDP and has TLS 1.3 built-in for security). It also typically uses port 853 (but over UDP). DoQ aims to combine the security of DoT with the low-latency benefits of UDP and QUIC's features like reduced head-of-line blocking and faster connection establishment (0-RTT or 1-RTT handshakes).
+
+This study involved:
+* Setting up a controlled test environment.
+* Using the `dnspyre` tool for DNS benchmarking.
+* Simulating network packet loss from 0% to 20% using `netem`.
+* Collecting detailed performance logs for each protocol under each packet loss scenario.
+* Analyzing these logs to derive key performance metrics and draw conclusions.
+
+---
+
+## Project Challenges
+
+Several challenges were encountered and overcome during the execution of this project, providing valuable learning experiences:
+
+* **Tool Selection for Benchmarking:** Initially, the `dnsperf` tool was considered. However, it was found to lack support for DNS over QUIC at the time of testing. This necessitated a search for an alternative, leading to the adoption of `dnspyre`, which supports all three protocols (Plain DNS, DoT, DoQ) and offers robust benchmarking capabilities.
+* **Finding a Stable Public DoQ Server:** Identifying a reliable public DNS server that supported DoQ for testing was a challenge, as many common public DNS resolvers (like Google's 8.8.8.8) did not offer stable DoQ services at the time. After some research, the AdGuard DNS server (`quic://245cca3b.d.adguard-dns.com`) was selected as a suitable endpoint for DoQ tests.
+* **Data Processing Pipeline:** The `dnspyre` tool generated a significant volume of log data across numerous test scenarios (3 protocols x 10 domains x 6 packet loss levels x multiple runs for averaging, for the 120s tests). Manually processing these logs would have been inefficient and error-prone. To address this, Python scripts were developed to parse the raw logs, extract key performance metrics, and convert the data into a structured CSV format, suitable for further analysis and visualization (e.g., using Google Sheets as an intermediary for Grafana).
+* **Consistent Network Emulation:** Ensuring precise and consistent application of packet loss using `netem` for each test run required careful scripting and verification to avoid interference between test scenarios.
+* **Interpreting Nuanced Results:** The performance differences between DoT and DoQ, especially at lower packet loss levels where DoT sometimes showed slightly better metrics, required careful consideration of potential factors like specific server implementations, TCP vs. QUIC handshake overheads in different conditions, and the nature of the test traffic.
+
+---
+
+## 🗂️ What You'll Find Here
+
+* **`report.pdf`**: A detailed report (in Persian) discussing the methodology, full results, and in-depth analysis of this study. *This is the main document to read for comprehensive information.*
+* **`logs/` (Directory):** This directory contains all the raw output log files generated by the `dnspyre` benchmarking tool during the experiments. Each file corresponds to a specific test run (e.g., `dns_requests_udp_0loss.log`, `dns_requests_dot_5loss.log`, etc.). These logs form the basis of the analysis presented in the report.
+* **`report.tex`** (Optional, if you include it): The main LaTeX source file for the report.
+
+---
+
+## 🛠️ Methodology Highlights
+
+1.  **Protocols Tested:** Plain DNS (UDP), DNS over TLS (DoT), DNS over QUIC (DoQ).
+2.  **DNS Server:** AdGuard DNS (`245cca3b.d.adguard-dns.com` for UDP/DoT, `quic://245cca3b.d.adguard-dns.com` for DoQ).
+3.  **Benchmarking Tool:** `dnspyre`.
+4.  **Network Emulation:** `netem` on Linux (interface `ens33`) to simulate packet loss at 0%, 1%, 5%, 10%, 15%, and 20%.
+5.  **Test Scenario:** For each protocol and packet loss level, DNS queries were sent to a list of 10 popular domains over a duration of 120 seconds.
+6.  **Data Collected (per test run, available in logs):** Queries Per Second (QPS), mean/median/percentile latencies, success/error counts, etc.
+
+---
+
+## 📊 Summary of Key Findings & Performance Metrics
+
+The analysis of the collected log files (detailed in `report.pdf`) revealed the following key insights and performance metrics from the 120-second tests:
+
+### High-Level Conclusions:
+
+1.  **Plain DNS (UDP):**
+    * **Fastest in Ideal Conditions (0% Packet Loss):** Showed the best QPS (~16.2) and lowest mean latency (~48.83ms).
+    * **Severe Degradation under Packet Loss:** Performance dropped drastically with increasing packet loss.
+    * **No Security:** Inherently insecure.
+
+2.  **DNS over TLS (DoT):**
+    * **High Reliability:** Maintained excellent success rates (>98.6%) across all tested packet loss levels.
+    * **Good Performance:** At 0% packet loss, QPS was ~11.4 with a mean latency of ~87.55ms.
+    * **Competitive at Low Packet Loss:** Interestingly, DoT showed slightly better QPS and latency than DoQ at 1% and 5% packet loss in this experiment.
+
+3.  **DNS over QUIC (DoQ):**
+    * **High Reliability & Security:** Also demonstrated very high success rates (>98.4%) under packet loss.
+    * **Strong Performance, Especially Under Stress:** At 0% packet loss, DoQ (QPS ~12.4, latency ~80.2ms) outperformed DoT. This advantage became more pronounced at higher packet loss levels (10% and above).
+
+**Overall:** While Plain DNS is fast in perfect conditions, its insecurity and poor performance under packet loss make it unsuitable for general use. Both DoT and DoQ provide essential security and are far more resilient. DoQ generally shows an edge, particularly as network conditions worsen.
+
+### Detailed Performance Metrics (120-second Tests):
+
+**Table 1: Queries Per Second (QPS)**
+| Packet Loss % | Plain DNS (QPS) | DoT (QPS) | DoQ (QPS) |
+| :-----------: | :---------------: | :---------: | :---------: |
+| 0% (Baseline) | 16.2              | 11.4        | 12.4        |
+| 1%            | 7.6               | 11.2        | 10.8        |
+| 5%            | 2.8               | 10.8        | 10.1        |
+| 10%           | 1.6               | 7.4         | 9.9         |
+| 15%           | 1.6 *(like 10%)* | 6.7         | 8.8         |
+| 20%           | 0.7               | 4.8         | 7.0         |
+*Source: Experimental data from `dnspyre` logs.*
+
+**Table 2: Mean Latency (ms) for Successful Queries**
+| Packet Loss % | Plain DNS (ms) | DoT (ms) | DoQ (ms) |
+| :-----------: | :--------------: | :--------: | :--------: |
+| 0% (Baseline) | 48.83            | 87.55      | 80.2       |
+| 1%            | 55.41            | 89.28      | 92.6       |
+| 5%            | 47.03            | 92.57      | 98.99      |
+| 10%           | 47.17            | 134.92     | 100.88     |
+| 15%           | 47.17 *(like 10%)*| 143.82     | 113.32     |
+| 20%           | 50.72            | 182.29     | 132.42     |
+*Source: Experimental data from `dnspyre` logs.*
+
+**Table 3: Query Success Rate (%)**
+| Packet Loss % | Plain DNS (%) | DoT (%)   | DoQ (%)   |
+| :-----------: | :-------------: | :-------: | :-------: |
+| 0% (Baseline) | 99.6%           | 100.0%    | 100.0%    |
+| 1%            | 98.7%           | 99.9%     | 99.8%     |
+| 5%            | 93.8%           | 99.6%     | 99.8%     |
+| 10%           | 88.0%           | 100.0%    | 99.8%     |
+| 15%           | 88.0% *(like 10%)*| 99.3%     | 100.0%    |
+| 20%           | 73.8%           | 98.6%     | 98.5%     |
+*Source: Calculated from `dnspyre` logs (`NOERROR` count / total expected queries).*
+
+---
+
+## 💡 Using the Log Files
+
+The raw `dnspyre` logs in the `logs/` directory are plain text and can be parsed for detailed statistics from each test run. They were the primary source for the analysis presented in the `report.pdf` and the summary tables above.
+
+---
+
+## 🌱 Future Work (Suggestions)
+
+* Complete and analyze tests based on a fixed number of queries (e.g., 5000 queries per run).
+* Investigate the impact of other network parameters like Jitter and bandwidth limitations.
+* Conduct tests using different DNS server implementations.
+* Evaluate performance on real-world internet connections.
+* Analyze system resource consumption (CPU, memory) for each protocol.
+
+---
+
+*(Optional: You can add a "License" section if you wish.)*
+
+**To improve discoverability on GitHub, consider adding the following topics to your repository settings:**
+`dns`, `network-performance`, `dns-over-tls`, `dot`, `dns-over-quic`, `doq`, `udp`, `tcp`, `quic`, `packet-loss`, `cybersecurity`, `privacy`, `benchmark`, `dnspyre`, `netem`, `academic-project`, `university-of-tehran`, `internet-measurements`
