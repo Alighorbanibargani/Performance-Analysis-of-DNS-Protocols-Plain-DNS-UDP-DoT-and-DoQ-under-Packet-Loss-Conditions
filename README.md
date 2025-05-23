@@ -118,20 +118,3 @@ The analysis of the collected log files (detailed in `report.pdf`) revealed the 
 ## 💡 Using the Log Files
 
 The raw `dnspyre` logs in the `logs/` directory are plain text and can be parsed for detailed statistics from each test run. They were the primary source for the analysis presented in the `report.pdf` and the summary tables above.
-
----
-
-## 🌱 Future Work (Suggestions)
-
-* Complete and analyze tests based on a fixed number of queries (e.g., 5000 queries per run).
-* Investigate the impact of other network parameters like Jitter and bandwidth limitations.
-* Conduct tests using different DNS server implementations.
-* Evaluate performance on real-world internet connections.
-* Analyze system resource consumption (CPU, memory) for each protocol.
-
----
-
-*(Optional: You can add a "License" section if you wish.)*
-
-**To improve discoverability on GitHub, consider adding the following topics to your repository settings:**
-`dns`, `network-performance`, `dns-over-tls`, `dot`, `dns-over-quic`, `doq`, `udp`, `tcp`, `quic`, `packet-loss`, `cybersecurity`, `privacy`, `benchmark`, `dnspyre`, `netem`, `academic-project`, `university-of-tehran`, `internet-measurements`
